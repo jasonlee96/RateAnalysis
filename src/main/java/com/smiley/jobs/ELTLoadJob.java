@@ -53,7 +53,7 @@ public class ELTLoadJob {
             if(result){
                 // update success and form next job
                 var zoneOffset = ZoneId.systemDefault().getRules().getOffset(Instant.now());
-                var nextJobAt = LocalDateTime.of(DateHelper.AddDays(currentDate, 1), LocalTime.of(19,0,0)).toInstant(zoneOffset);
+                var nextJobAt = LocalDateTime.of(DateHelper.AddDays(currentDate, 1), LocalTime.of(9,0,0)).toInstant(zoneOffset);
 
                 var updateResult = _jobService.UpdateJobInfoAsync(jobType, StatusEnum.Success, Optional.of(currentDate), Optional.of(nextJobAt)).join();
                 if(!updateResult) log.error("Update Job Failed");

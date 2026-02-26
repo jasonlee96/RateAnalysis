@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -23,6 +24,10 @@ public class RateService {
     public RateService(RateRepository repository, AppSetting appSetting) {
         this._repository = repository;
         this._appSetting = appSetting;
+    }
+
+    public CompletableFuture<Boolean> insertRates(List<RateEntity> rates) {
+        return _repository.insertRatesAsync(rates);
     }
 
     // core logic here
