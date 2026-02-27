@@ -32,11 +32,12 @@ ranalysis:
   batchsize: 50
   eltFilePath: /data/rates
   eltFileNameFormat: Rate_{{DATE}}.csv
+  notifyWebhookUrl: ${NOTIFY_WEBHOOK_URL:http://n8n:5678/webhook/notify}
   symbols:
-    - name: USDJPY
+    - name: SGDMYR
       type: CURRENCY
-      url: https://example.com/fx/usdjpy
-      rateRegex: '"JPY":([\d.]+)'
+      url: ""
+      rateRegex: ""
       watcher:
         enabled: true
         hourlyWindow: 24

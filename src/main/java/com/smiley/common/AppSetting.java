@@ -13,4 +13,5 @@ public class AppSetting {
     private String eltFilePath;
     private String eltFileNameFormat;
     private List<SymbolConfig> symbols;
+    private String notifyWebhookUrl;
 }

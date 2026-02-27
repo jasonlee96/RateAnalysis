@@ -18,10 +18,12 @@ public class RateWatcherService {
 
     private final RateRepository _rateRepository;
     private final RateSignalRepository _signalRepository;
+    private final NotifyService _notifyService;
 
-    public RateWatcherService(RateRepository rateRepository, RateSignalRepository signalRepository) {
+    public RateWatcherService(RateRepository rateRepository, RateSignalRepository signalRepository, NotifyService notifyService) {
         _rateRepository = rateRepository;
         _signalRepository = signalRepository;
+        _notifyService = notifyService;
     }
 
     public CompletableFuture<Boolean> evaluateSymbol(String symbol, WatcherConfig config) {
@@ -46,6 +48,13 @@ public class RateWatcherService {
         entity.setDailyAvg(dailyStats.getAvg());
         entity.setDailyP90(dailyStats.getP90());
         entity.setSignalType(signal.name());
+
+        if (signal != RateSignalEnum.NORMAL) {
+            _notifyService.send(String.format(
+                "[RateWatcher] %s signal for %s | Rate: %.4f | HourlyAvg: %.4f | DailyAvg: %.4f | DailyP90: %.4f",
+                signal.name(), symbol, currentRate, hourlyStats.getAvg(), dailyStats.getAvg(), dailyStats.getP90()
+            ));
+        }
 
         return _signalRepository.saveSignalAsync(entity);
     }
