@@ -2,6 +2,7 @@ package com.smiley.repositories;
 import com.smiley.common.AppSetting;
 import com.smiley.entities.*;
 import com.smiley.helpers.DateHelper;
+import com.smiley.models.RateWindowStats;
 import com.smiley.repositories.interfaces.IRateRepository;
 import jakarta.persistence.criteria.*;
 import org.springframework.scheduling.annotation.Async;
@@ -124,6 +125,74 @@ public class RateRepository implements IRateRepository {
 
         var i = query.executeUpdate();
         return CompletableFuture.completedFuture(true);
+    }
+
+    @Override
+    @Async
+    public CompletableFuture<RateEntity> getLatestRateBySymbolAsync(String symbol) {
+        String rawQuery = """
+            SELECT * FROM ralysis.rates
+            WHERE symbol = :symbol
+            ORDER BY dateRetrieved DESC
+            LIMIT 1
+            """;
+        var query = entityManager.createNativeQuery(rawQuery, RateEntity.class);
+        query.setParameter("symbol", symbol);
+        var result = query.getResultList();
+        return CompletableFuture.completedFuture(result.isEmpty() ? null : (RateEntity) result.get(0));
+    }
+
+    @Override
+    @Async
+    public CompletableFuture<RateWindowStats> getHourlyStatsAsync(String symbol, int hours) {
+        String rawQuery = """
+            SELECT
+                COALESCE(AVG(rate), 0),
+                COALESCE(STDDEV(rate), 0),
+                COALESCE(PERCENTILE_CONT(0.9) WITHIN GROUP (ORDER BY rate), 0),
+                COALESCE(MAX(rate), 0),
+                COALESCE(MIN(rate), 0),
+                COUNT(*)
+            FROM ralysis.rates
+            WHERE symbol = :symbol
+            AND dateRetrieved >= NOW() - CAST(:hours || ' hours' AS INTERVAL)
+            """;
+        var query = entityManager.createNativeQuery(rawQuery);
+        query.setParameter("symbol", symbol);
+        query.setParameter("hours", hours);
+        return CompletableFuture.completedFuture(mapToWindowStats((Object[]) query.getSingleResult()));
+    }
+
+    @Override
+    @Async
+    public CompletableFuture<RateWindowStats> getDailyStatsAsync(String symbol, int days) {
+        String rawQuery = """
+            SELECT
+                COALESCE(AVG(rate), 0),
+                COALESCE(STDDEV(rate), 0),
+                COALESCE(PERCENTILE_CONT(0.9) WITHIN GROUP (ORDER BY rate), 0),
+                COALESCE(MAX(rate), 0),
+                COALESCE(MIN(rate), 0),
+                COUNT(*)
+            FROM ralysis.rates
+            WHERE symbol = :symbol
+            AND dateRetrieved >= NOW() - CAST(:days || ' days' AS INTERVAL)
+            """;
+        var query = entityManager.createNativeQuery(rawQuery);
+        query.setParameter("symbol", symbol);
+        query.setParameter("days", days);
+        return CompletableFuture.completedFuture(mapToWindowStats((Object[]) query.getSingleResult()));
+    }
+
+    private RateWindowStats mapToWindowStats(Object[] row) {
+        var stats = new RateWindowStats();
+        stats.setAvg(((Number) row[0]).doubleValue());
+        stats.setStddev(((Number) row[1]).doubleValue());
+        stats.setP90(((Number) row[2]).doubleValue());
+        stats.setMax(((Number) row[3]).doubleValue());
+        stats.setMin(((Number) row[4]).doubleValue());
+        stats.setCount(((Number) row[5]).intValue());
+        return stats;
     }
 
     public void insertRatesBatch(List<RateEntity> rates) {

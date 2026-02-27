@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: RateAnalysis
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/rate_analysis}
+    username: ${DB_USERNAME:n8n}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+      ddl-auto: update
+    show-sql: true
+
+logging:
+  level:
+    root: INFO
+    com.myapp: DEBUG
+  file:
+    name: app.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+ranalysis:
+  batchsize: 50
+  eltFilePath: /data/rates
+  eltFileNameFormat: Rate_{{DATE}}.csv
+  symbols:
+    - name: USDJPY
+      type: CURRENCY
+      url: https://example.com/fx/usdjpy
+      rateRegex: '"JPY":([\d.]+)'
+      watcher:
+        enabled: true
+        hourlyWindow: 24
+        dailyWindow: 30
+        highThreshold: 1.02
+        lowThreshold: 0.98

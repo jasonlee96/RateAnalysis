@@ -7,8 +7,9 @@ import lombok.Setter;
 import java.time.Instant;
 
 @Entity
-@Table(name = "rates", schema = "ralysis")
-public class RateEntity {
+@Table(name = "rate_signals", schema = "ralysis")
+public class RateSignalEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Getter @Setter
@@ -16,10 +17,25 @@ public class RateEntity {
 
     @Getter @Setter
     private String symbol;
+
     @Getter @Setter
-    private Instant dateRetrieved;
+    private Instant signalDate;
+
     @Getter @Setter
-    private double rate;
+    private double currentRate;
+
+    @Getter @Setter
+    private double hourlyAvg;
+
+    @Getter @Setter
+    private double dailyAvg;
+
+    @Getter @Setter
+    private double dailyP90;
+
+    @Getter @Setter
+    private String signalType;
+
     @Getter @Setter
     private Instant createdAt;
 
@@ -27,5 +43,4 @@ public class RateEntity {
     protected void onCreate() {
         this.createdAt = Instant.now();
     }
-
 }

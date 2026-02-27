@@ -1,13 +1,16 @@
 package com.smiley.common;
 
+import com.smiley.models.SymbolConfig;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @ConfigurationProperties(prefix = "ranalysis")
-@Data // Lombok annotation to auto-generate getters and setters
+@Data
 public class AppSetting {
     private int batchSize;
     private String eltFilePath;
     private String eltFileNameFormat;
+    private List<SymbolConfig> symbols;
 }

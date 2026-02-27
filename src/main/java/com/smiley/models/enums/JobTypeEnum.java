@@ -1,7 +1,7 @@
 package com.smiley.models.enums;
 
 public enum JobTypeEnum {
-    ELT_LOAD(1), ELT_TRANSFORM(2);
+    ELT_LOAD(1), ELT_TRANSFORM(2), RATE_WATCHER(3);
 
     private final int ID;
 
