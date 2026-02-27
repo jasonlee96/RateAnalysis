@@ -1,0 +1,413 @@
+{
+  "id": null,
+  "uid": "sgd-myr-rates",
+  "title": "SGD → MYR Rate Dashboard",
+  "tags": ["rates", "forex"],
+  "timezone": "Asia/Singapore",
+  "schemaVersion": 38,
+  "version": 2,
+  "refresh": "5m",
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 10,
+      "title": "Current Rate",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "PCC52D03280B7034C" },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 4,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 3.4 },
+              { "color": "green", "value": 3.5 }
+            ]
+          },
+          "color": { "mode": "thresholds" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT rate AS \"Current Rate\" FROM ralysis.rates WHERE symbol = 'SGDMYR' ORDER BY dateretrieved DESC LIMIT 1",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "24h High",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "PCC52D03280B7034C" },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 4,
+          "color": { "mode": "fixed", "fixedColor": "red" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT MAX(rate) AS \"24h High\" FROM ralysis.rates WHERE symbol = 'SGDMYR' AND dateretrieved >= NOW() - INTERVAL '24 hours'",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "24h Low",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "PCC52D03280B7034C" },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 4,
+          "color": { "mode": "fixed", "fixedColor": "blue" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT MIN(rate) AS \"24h Low\" FROM ralysis.rates WHERE symbol = 'SGDMYR' AND dateretrieved >= NOW() - INTERVAL '24 hours'",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "30-day P90",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "PCC52D03280B7034C" },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 4,
+          "color": { "mode": "fixed", "fixedColor": "purple" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT ROUND(PERCENTILE_CONT(0.9) WITHIN GROUP (ORDER BY rate)::numeric, 4) AS \"30d P90\" FROM ralysis.rates WHERE symbol = 'SGDMYR' AND dateretrieved >= NOW() - INTERVAL '30 days'",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "title": "Rate Trend (Raw Readings)",
+      "type": "timeseries",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 4 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "PCC52D03280B7034C" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "spanNulls": false
+          },
+          "unit": "short",
+          "decimals": 4
+        }
+      },
+      "options": {
+        "tooltip": { "mode": "single" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT dateretrieved AS time, rate AS \"Rate\" FROM ralysis.rates WHERE symbol = 'SGDMYR' AND $__timeFilter(dateretrieved) ORDER BY dateretrieved",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "Recent Rate Signals",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 13 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "PCC52D03280B7034C" },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Signal" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": {
+                    "NORMAL":      { "text": "NORMAL",      "color": "green",  "index": 0 },
+                    "DAILY_HIGH":  { "text": "DAILY_HIGH",  "color": "red",    "index": 1 },
+                    "DAILY_LOW":   { "text": "DAILY_LOW",   "color": "blue",   "index": 2 },
+                    "HOURLY_HIGH": { "text": "HOURLY_HIGH", "color": "orange", "index": 3 },
+                    "HOURLY_LOW":  { "text": "HOURLY_LOW",  "color": "light-blue", "index": 4 }
+                  }}
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "footer": { "show": false },
+        "showHeader": true,
+        "sortBy": [{ "displayName": "Time (SGT)", "desc": true }]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT signaldate AT TIME ZONE 'Asia/Singapore' AS \"Time (SGT)\", symbol AS \"Symbol\", ROUND(currentrate::numeric, 4) AS \"Rate\", ROUND(hourlyavg::numeric, 4) AS \"Hourly Avg\", ROUND(dailyavg::numeric, 4) AS \"Daily Avg\", ROUND(dailyp90::numeric, 4) AS \"Daily P90\", signaltype AS \"Signal\" FROM ralysis.rate_signals ORDER BY signaldate DESC LIMIT 50",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Daily Stats",
+      "type": "timeseries",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 21 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "PCC52D03280B7034C" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 5
+          },
+          "unit": "short",
+          "decimals": 4
+        }
+      },
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT date::timestamp AS time, rateavg AS \"Avg\", rate50pct AS \"P50\", rate90pct AS \"P90\", ratemin AS \"Min\", ratemax AS \"Max\" FROM ralysis.rates_agg_daily WHERE $__timeFilter(date::timestamp) ORDER BY date",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Monthly Trend",
+      "type": "timeseries",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 30 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "PCC52D03280B7034C" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 8,
+            "spanNulls": true
+          },
+          "unit": "short",
+          "decimals": 4
+        }
+      },
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT date::timestamp AS time, rateavg AS \"Avg\", rate50pct AS \"P50\", rate90pct AS \"P90\", ratemin AS \"Min\", ratemax AS \"Max\" FROM ralysis.rates_agg_monthly ORDER BY date",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "title": "Signal Breakdown",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 39 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "PCC52D03280B7034C" },
+      "fieldConfig": {
+        "defaults": { "color": { "mode": "palette-classic" } }
+      },
+      "options": {
+        "pieType": "donut",
+        "tooltip": { "mode": "single" },
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT signaltype AS \"Signal Type\", COUNT(*) AS \"Count\" FROM ralysis.rate_signals WHERE symbol = 'SGDMYR' GROUP BY signaltype ORDER BY COUNT(*) DESC",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "title": "Best Day of Week (Avg Rate)",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 39 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "PCC52D03280B7034C" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 3.4 },
+              { "color": "green", "value": 3.5 }
+            ]
+          },
+          "unit": "short",
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "Day",
+        "orientation": "auto",
+        "barRadius": 0.05,
+        "groupWidth": 0.7,
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT TO_CHAR(dateretrieved AT TIME ZONE 'Asia/Singapore', 'Dy') AS \"Day\", ROUND(AVG(rate)::numeric, 4) AS \"Avg Rate\" FROM ralysis.rates WHERE symbol = 'SGDMYR' GROUP BY EXTRACT(ISODOW FROM dateretrieved AT TIME ZONE 'Asia/Singapore'), TO_CHAR(dateretrieved AT TIME ZONE 'Asia/Singapore', 'Dy') ORDER BY EXTRACT(ISODOW FROM dateretrieved AT TIME ZONE 'Asia/Singapore')",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Best Hour to Exchange (Avg Rate by Hour of Day)",
+      "type": "barchart",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 47 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "PCC52D03280B7034C" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 3.4 },
+              { "color": "green", "value": 3.5 }
+            ]
+          },
+          "unit": "short",
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "options": {
+        "xField": "Hour",
+        "orientation": "auto",
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0,
+        "barRadius": 0.05,
+        "groupWidth": 0.7,
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "single" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT EXTRACT(HOUR FROM dateretrieved AT TIME ZONE 'Asia/Singapore')::int::text AS \"Hour\", ROUND(AVG(rate)::numeric, 4) AS \"Avg Rate\" FROM ralysis.rates WHERE symbol = 'SGDMYR' GROUP BY 1 ORDER BY 1",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Job Status",
+      "type": "table",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 56 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "PCC52D03280B7034C" },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Status" },
+            "properties": [
+              { "id": "custom.displayMode", "value": "color-background" },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "yellow", "value": null },
+                    { "color": "green", "value": 1 },
+                    { "color": "red", "value": 2 }
+                  ]
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "0": { "text": "Pending", "index": 0 }, "1": { "text": "Success", "index": 1 }, "2": { "text": "Failed", "index": 2 } } }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "footer": { "show": false },
+        "showHeader": true,
+        "sortBy": [{ "displayName": "Job", "desc": false }]
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "rawSql": "SELECT CASE jobtypeid WHEN 1 THEN 'ELT_LOAD' WHEN 2 THEN 'ELT_TRANSFORM' WHEN 3 THEN 'RATE_WATCHER' END AS \"Job\", jobvalue AS \"Last Date\", jobstatusid AS \"Status\", nextjobat AT TIME ZONE 'Asia/Singapore' AS \"Next Run (SGT)\", updatedat AT TIME ZONE 'Asia/Singapore' AS \"Last Updated (SGT)\" FROM ralysis.jobinfos ORDER BY jobtypeid",
+          "format": "table"
+        }
+      ]
+    }
+  ],
+  "templating": {
+    "list": []
+  }
+}
