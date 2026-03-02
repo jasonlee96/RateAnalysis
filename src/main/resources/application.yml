@@ -33,6 +33,8 @@ ranalysis:
   eltFilePath: /data/rates
   eltFileNameFormat: Rate_{{DATE}}.csv
   notifyWebhookUrl: ${NOTIFY_WEBHOOK_URL:http://n8n:5678/webhook/notify}
+  smileyApiUrl: ${SMILEY_API_URL:http://smiley-api:3100}
+  smileyInternalKey: ${SMILEY_INTERNAL_KEY:}
   symbols:
     - name: SGDMYR
       type: CURRENCY

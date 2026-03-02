@@ -1,5 +1,6 @@
 package com.smiley.controllers;
 
+import com.smiley.common.AppSetting;
 import com.smiley.entities.RateEntity;
 import com.smiley.helpers.DateHelper;
 import com.smiley.models.RateRequest;
@@ -26,16 +27,22 @@ public class RateController {
 
     private final RateService _rateService;
     private final JobService _jobService;
+    private final AppSetting _appSetting;
 
-    public RateController(RateService rateService, JobService jobService) {
+    public RateController(RateService rateService, JobService jobService, AppSetting appSetting) {
         this._rateService = rateService;
         this._jobService = jobService;
+        this._appSetting = appSetting;
     }
 
     @PostMapping("/rates")
     public ResponseEntity<Map<String, Object>> ingestRate(@RequestBody RateRequest request) {
         try {
+            var symbolName = (_appSetting.getSymbols() != null && !_appSetting.getSymbols().isEmpty())
+                    ? _appSetting.getSymbols().get(0).getName()
+                    : "SGDMYR";
             var entity = new RateEntity();
+            entity.setSymbol(symbolName);
             entity.setRate(request.getRate());
             entity.setDateRetrieved(request.getDateRetrieved());
 

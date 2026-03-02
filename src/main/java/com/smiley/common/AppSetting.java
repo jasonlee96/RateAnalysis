@@ -14,4 +14,6 @@ public class AppSetting {
     private String eltFileNameFormat;
     private List<SymbolConfig> symbols;
     private String notifyWebhookUrl;
+    private String smileyApiUrl;
+    private String smileyInternalKey;
 }

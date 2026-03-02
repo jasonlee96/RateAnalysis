@@ -44,8 +44,13 @@ public class RateService {
         var csvModel = FileHelper.ReadContent(fullPath);
 
         // form into RateDTO
+        var symbolName = (_appSetting.getSymbols() != null && !_appSetting.getSymbols().isEmpty())
+                ? _appSetting.getSymbols().get(0).getName()
+                : "SGDMYR";
+
         var rates = csvModel.stream().map(x -> {
             var rateDto = new RateEntity();
+            rateDto.setSymbol(symbolName);
             x.Columns.forEach(y -> {
                 switch(y.ColumnIndex){
                     case 0:
